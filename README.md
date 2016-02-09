@@ -1,6 +1,6 @@
 # Echo - Convert HTML tables to JSON/CSVs
 
-Echo is able to read tables from a website or a html file and convert it to JSON or CSV.
+WIP: Echo is able to read tables from a website or a html file and convert it to JSON or CSV.
 Perfect for saving data from a website and loading it into excel, database, etc.
 
 ---
@@ -45,7 +45,7 @@ echo.convertUrl('https://www.coolgithubprojects.com', 'dest', 'month');
   "","JavaScript","+4045","dimsemenov/PhotoSwipe"
   "","PHP","+3284","isohuntto/openbay"
   ...
-  
+
 */
 ```
 
