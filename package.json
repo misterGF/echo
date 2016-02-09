@@ -1,0 +1,31 @@
+{
+  "author": {
+    "name": "Gil",
+    "url": "https://github.com/misterGF"
+  },
+  "name": "echo",
+  "description": "Echo converts HTML tables into JSON/CSV objects. Use it to make html data easy to transport.",
+  "version": "0.0.1",
+  "main": "./lib/echo.js",
+  "keywords": [
+    "echo",
+    "html",
+    "table",
+    "convert",
+    "json",
+    "csv",
+    "migration"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/misterGF/echo.git"
+  },
+  "dependencies": {
+    "cheerio": "0.19.0",
+    "json2csv": "^3.1.0",
+    "tabletojson": "^0.4.0"
+  },
+  "engines": {
+    "node": "*"
+  }
+}
