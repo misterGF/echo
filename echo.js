@@ -1,3 +1,5 @@
+"use strict";
+
 // Load our modules
 var fs = require('fs'),
   tabletojson = require('tabletojson'),
@@ -8,6 +10,7 @@ var fs = require('fs'),
 // Set defaults
 var defaults = {
   "path" : "process",
+  "url" : "www.coolgithubprojects.com",
   "dest" : "dest",
   "format" : "csv"
 };
@@ -24,170 +27,189 @@ colors.setTheme({
 // MARK : Main functions. Part of export
 var convert = (path, dest, format, tableId) => {
 
-  //If path is not given kick in defaults
-  if(!path){
-    path = __dirname+"\\"+defaults.path;
-    console.log(("Warning: No path specified. Setting it to " + path).warn);
-  }
+  // Validate our inputs
+  var validate = new Promise((resolve, reject) => {
+    let inputs = { "path" : path, "dest" : dest, "format" : format };
 
-  // Do the same for dest
-  if(!dest){
-    dest = __dirname+"\\"+defaults.dest;
-    console.log(("Warning: No destination specified. Setting it to " + dest).warn);
-  }
-
-  // Set format type
-  format = (!format) ? defaults.format : format;
-
-  //Find or create path
-  try {
-    // Find
-    fs.readdir(__dirname, function(err, files){
-      if(err) { throw err };
-
-      // Verify path
-      var pathIsThere = files.filter(function(obj){
-        return obj === path;
-      });
-
-      if(pathIsThere.length === 0){
-        var err = "Path to process HTML files not there. Path is set to " + path;
-        console.log((err).error);
-        return;
+    _validateArguments(inputs, (options) => {
+      if(options) {
+        resolve(options);
+      } else {
+        reject("Unable to validate arguments");
       }
-
-      // Verify dest
-      var destIsThere = files.filter(function(obj){
-        return obj === dest;
-      });
-
-      // If not found let us create
-      if(destIsThere.length === 0){
-        console.log("Creating destination folder".warn);
-
-        try {
-          fs.mkdirSync(dest);
-        } catch(e) {
-          var err = "Filesystem error: " + e;
-          console.log((err).error);
-        }
-      }
-
-      // Parse through each and find html file
-      fs.readdir(path, function(err, files){
-
-        var htmlfiles = files.filter(function(obj){
-          return (obj.match(".html")  !== null);
-        });
-
-        // Process each HTML
-        htmlfiles.forEach(function(file){
-
-          var info = "Working on " + file;
-          console.log((info).data);
-
-          // Read file content
-          try {
-            var filePath = path + "\\"+ file;
-
-            var p = new Promise((resolve, reject) => {
-              fs.readFile(filePath,(err, html) => {
-
-                if(err) { reject(err); }
-
-                var tables = '',
-                  tableIds = [];
-
-                $ = cheerio.load(html);
-
-                //Check if we should filter down based on ID.
-                var filter = (typeof tableId !== 'undefined') ? "#" + tableId : 'table';
-
-                // Try to grab each table using cheerio to get an ID for the filename. Filter HTML down to wanted tables.
-                $(filter).each(function(i, element){
-                  tableIds[i] = $(this).attr('id');
-                  tables += $(this).parent().html();
-                });
-
-                var info = {
-                  "tableIds" : tableIds,
-                  "tables" : tables
-                };
-
-                resolve(info);
-              });
-            });
-
-            //Convert and file to file
-            p.then(function(info){
-
-              var tablesAsJson = tabletojson.convert(info.tables);
-              var status = "Found "+ tablesAsJson.length +" tables";
-              console.log((status).data);
-
-              //File to write
-              tablesAsJson.forEach((table, index) => {
-
-                if(format == 'csv'){
-                  json2csv({ data: table}, function(err, csv) {
-                      if(err) throw err;
-
-                      var filePath = dest +"/"+info.tableIds[index]+".csv";
-
-                      fs.writeFile(filePath, csv, (err) => {
-                        if(err) throw err;
-
-                        var status = "Successfully saved " + filePath;
-                        console.log((status).info);
-                      });
-                  });
-                } else {
-                  filePath = dest +"/"+info.tableIds[index]+".json";
-
-                  fs.writeFile(filePath, JSON.stringify(table), (err) => {
-                    if (err) throw err;
-
-                    var status = "Successfully saved " + filePath;
-                    console.log((status).info);
-                  });
-                }
-              });
-            })
-            .catch(function(e){
-              //Catch for promise
-              var err = "Error during converting : " + e;
-              console.log((err).error);
-            });
-
-          } catch(e) {
-            var err = "Error processing html file : " + e;
-            console.log((err).error);
-          }
-        });
-      });
-
     });
-  } catch (e) {
-    var err = "Error in convert: " + e;
+
+  });
+
+  // Validate paths
+  validate.then((options) => {
+
+    // Process
+    var process = new Promise((resolve, reject) => {
+
+      _validatePaths(options, (status) => {
+        if(status){
+          resolve(options);
+        } else {
+          reject("Unable to validate paths.");
+        }
+      });
+    });
+
+    // Process our data and save it
+    process.then((options) => {
+      _processData(options, (status) => {
+        console.log("Last promise ", status);
+      })
+    },
+    (error) => {
+      let err = "Something went wrong during processing : " + error;
+      console.log((err).error);
+    });
+
+  },
+  (error) => {
+    let err = "Something went wrong during validation : " + error;
     console.log((err).error);
-  }
+  })
 }
 
 exports.convert = convert;
 
+
+var convertUrl = (url, dest, tableId) {
+
+
+}
+
+exports.convertUrl = convertUrl
+
 // MARK : Supportive functions
+function _validateArguments(options, cb){
+  // Validate and prepare our arguments
 
-// MARK : Handle errors functions
-function _userException(message){
-  this.message = "User input error: " + message;
-};
+  //If path is not given kick in defaults
+  if(!options.path){
+    options.path = __dirname+"\\"+defaults.path;
+    console.log(("Warning: No path specified. Setting it to " + options.path).warn);
+  }
 
-function _fsException(message){
-  this.message = message;
-  this.name = "Filesystem error: ";
-};
+  // Do the same for dest
+  if(!options.dest){
+    options.dest = __dirname+"\\"+defaults.dest;
+    console.log(("Warning: No destination specified. Setting it to " + options.dest).warn);
+  }
 
-function _webException(message){
-  this.message = message;
-  this.name = "Web connection error: ";
-};
+  // Set format type
+  options.format = (!options.format) ? defaults.format : options.format;
+  cb(options);
+}
+
+function _validatePaths(options, cb){
+
+  fs.readdir(__dirname, function(err, files){
+    if(err) throw err;
+
+    // Check if path exists if calling from convert
+    if (options.path){
+      // Verify path
+      var pathIsThere = files.filter(function(obj){
+        return obj === options.path;
+      });
+
+      if(pathIsThere.length === 0){
+        var err = "Path to process HTML files not there. Path is set to " + options.path;
+        console.log((err).error);
+        cb(null);
+      }
+    }
+
+    // Verify dest
+    var destIsThere = files.filter(function(obj){
+      return obj === options.dest;
+    });
+
+    // If not found let us create
+    if(destIsThere.length === 0){
+      console.log("Creating destination folder".warn);
+      fs.mkdirSync(options.dest);
+      cb("done");
+    } else {
+      cb("done");
+    }
+  });
+}
+
+function _processData(options, cb){
+
+  // Parse through each and find html file
+  fs.readdir(options.path, function(err, files){
+
+    var htmlfiles = files.filter(function(obj){
+      return (obj.match(".html")  !== null);
+    });
+
+    // Process each HTML
+    htmlfiles.forEach(function(file){
+
+      var info = "Working on " + file;
+      var filePath = options.path + "\\"+ file;
+      console.log((info).data);
+
+      // Read file content
+      fs.readFile(filePath,(err, html) => {
+
+        if(err) throw err;
+
+        var tables = '',
+        tableIds = [];
+
+        var $ = cheerio.load(html);
+
+        //Check if we should filter down based on ID.
+        var filter = (typeof options.tableId !== 'undefined') ? "#" + options.tableId : 'table';
+
+        // Try to grab each table using cheerio to get an ID for the filename. Filter HTML down to wanted tables.
+        $(filter).each(function(i, element){
+          tableIds[i] = $(this).attr('id');
+          tables += $(this).parent().html();
+        });
+
+        var tablesAsJson = tabletojson.convert(tables);
+        var status = "Found "+ tablesAsJson.length +" tables";
+        console.log((status).data);
+
+        //File to write
+        tablesAsJson.forEach((table, index) => {
+          var filePath = options.dest +"/" // Reset
+
+          if(options.format == 'csv'){
+            json2csv({ data: table}, function(err, csv) {
+              if(err) throw err;
+
+              filePath += tableIds[index]+".csv";
+
+              fs.writeFile(filePath, csv, (err) => {
+                if(err) throw err;
+
+                var status = "Successfully saved " + filePath;
+                console.log((status).info);
+              });
+            });
+          }
+          else {
+            filePath += tableIds[index]+".json";
+
+            fs.writeFile(filePath, JSON.stringify(table), (err) => {
+              if (err) throw err;
+
+              var status = "Successfully saved " + filePath;
+              console.log((status).info);
+            });
+          }
+        });
+
+      });
+    });
+  });
+}
