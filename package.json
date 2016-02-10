@@ -5,8 +5,9 @@
   },
   "name": "echo",
   "description": "Echo converts HTML tables into JSON/CSV objects. Use it to make html data easy to transport.",
-  "version": "0.0.1",
-  "main": "./lib/echo.js",
+  "version": "0.0.2",
+  "main": "./echo.js",
+  "license": "MIT",
   "keywords": [
     "echo",
     "html",
