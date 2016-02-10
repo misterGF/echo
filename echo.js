@@ -12,7 +12,7 @@ var fs = require('fs'),
 var defaults = {
   "path" : "process",
   "url" : "http://www.coolgithubprojects.com",
-  "dest" : "dest",
+  "dest" : "output",
   "format" : "csv",
   "mode" : null
 };
