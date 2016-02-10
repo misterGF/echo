@@ -1,3 +1,4 @@
+# WIP: Not ready
 # Echo - Convert HTML tables to JSON/CSVs
 
 Echo is able to read tables from a website or a html file and convert it to JSON or CSV.
@@ -8,9 +9,7 @@ Perfect for saving data from a website and loading it into excel, database, etc.
 
 ## Install
 ``` javascript
-git clone "https://github.com/misterGF/echo.git"
-cd echo
-npm install
+npm install echo-table-2-file
 ```
 ---
 
@@ -20,21 +19,21 @@ We use **.convert** for local HTML files and **.convertUrl** for online retrieva
 
 ``` javascript
 // Site was saved locally in process folder. The follow code will read it and generate the json.
-var echo = require('./echo');
+var echo = require(' echo-table-2-file');
 echo.convert('process', 'output', 'json');
 
 ```
 
 ``` javascript
 // Here we grab the tables from the site and save the data to a csv (default type).
-var echo = require('./echo');
+var echo = require('echo-table-2-file');
 echo.convertUrl('https://www.coolgithubprojects.com', 'output');
 
 ```
 
 ``` javascript
 // Lastly, we filter the tables to only include the month table (based on table ID).
-var echo = require('./echo');
+var echo = require('echo-table-2-file');
 echo.convertUrl('https://www.coolgithubprojects.com', 'output', 'months');
 
 /* OUTPUT EXAMPLE : ./output/month.csv

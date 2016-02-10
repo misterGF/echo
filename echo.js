@@ -115,7 +115,7 @@ function _validateArguments(options, cb){
 }
 
 function _validatePaths(options, cb){
-
+  
   fs.readdir(__dirname, function(err, files){
     if(err) throw err;
 

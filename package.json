@@ -3,7 +3,7 @@
     "name": "Gil Ferriera <gfgilly@gmail.com>",
     "url": "https://github.com/misterGF"
   },
-  "name": "echo",
+  "name": "echo-table-2-file",
   "description": "Echo converts HTML tables into JSON/CSV objects. Use it to make html data easy to transport.",
   "version": "0.0.2",
   "main": "./echo.js",
