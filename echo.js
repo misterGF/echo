@@ -129,7 +129,7 @@ function _validatePaths(options, cb){
       if(pathIsThere.length === 0){
         var err = "Path to process HTML files not there. Path is set to " + options.path;
         console.log((err).error);
-        cb(null);
+        throw err;
       }
     }
 
@@ -159,6 +159,10 @@ function _processData(options, cb){
         return (obj.match(".html")  !== null);
       });
 
+      if(htmlfiles.length === 0){
+        console.log("No HTML files in folder.".error);
+
+      }
       // Process each HTML
       htmlfiles.forEach(function(file){
 
@@ -170,7 +174,7 @@ function _processData(options, cb){
         fs.readFile(filePath,(err, html) => {
 
           if(err) throw err;
-          
+
           _prepareHTML(html, options);
         });
       });
