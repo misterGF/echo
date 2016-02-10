@@ -5,14 +5,16 @@ var fs = require('fs'),
   tabletojson = require('tabletojson'),
   json2csv = require('json2csv'),
   cheerio = require('cheerio'),
-  colors = require('colors');
+  colors = require('colors'),
+  request = require('request');
 
 // Set defaults
 var defaults = {
   "path" : "process",
-  "url" : "www.coolgithubprojects.com",
+  "url" : "http://www.coolgithubprojects.com",
   "dest" : "dest",
-  "format" : "csv"
+  "format" : "csv",
+  "mode" : null
 };
 
 // Set theme for output
@@ -24,13 +26,11 @@ colors.setTheme({
   data: 'grey'
 });
 
-// MARK : Main functions. Part of export
-var convert = (path, dest, format, tableId) => {
+// MARK : Main functions.
+var _convert = (inputs) => {
 
   // Validate our inputs
   var validate = new Promise((resolve, reject) => {
-    let inputs = { "path" : path, "dest" : dest, "format" : format };
-
     _validateArguments(inputs, (options) => {
       if(options) {
         resolve(options);
@@ -38,14 +38,12 @@ var convert = (path, dest, format, tableId) => {
         reject("Unable to validate arguments");
       }
     });
-
   });
 
   // Validate paths
   validate.then((options) => {
 
-    // Process
-    var process = new Promise((resolve, reject) => {
+    var process = new Promise((resolve, reject) => {    // Process
 
       _validatePaths(options, (status) => {
         if(status){
@@ -56,10 +54,9 @@ var convert = (path, dest, format, tableId) => {
       });
     });
 
-    // Process our data and save it
-    process.then((options) => {
+    process.then((options) => { // Process our data and save it
       _processData(options, (status) => {
-        console.log("Last promise ", status);
+        console.log((status).info);
       })
     },
     (error) => {
@@ -74,22 +71,28 @@ var convert = (path, dest, format, tableId) => {
   })
 }
 
-exports.convert = convert;
-
-
-var convertUrl = (url, dest, tableId) {
-
-
+// MARK Exported methods
+var convert = function(path, dest, format, tableId) {
+  // call internal convert
+  let inputs = { "mode" : "file", "path" : path, "dest" : dest, "format" : format, "tableId" : tableId };
+  _convert(inputs);
 }
 
-exports.convertUrl = convertUrl
+var convertUrl = function(url, dest, format, tableId) {
+  // call internal convert
+  let inputs = { "mode" : "url", "url" : url, "dest" : dest, "format" : format, "tableId" : tableId };
+  _convert(inputs);
+}
+
+exports.convert = convert;
+exports.convertUrl = convertUrl;
 
 // MARK : Supportive functions
 function _validateArguments(options, cb){
   // Validate and prepare our arguments
 
   //If path is not given kick in defaults
-  if(!options.path){
+  if(!options.path && options.mode === 'file'){
     options.path = __dirname+"\\"+defaults.path;
     console.log(("Warning: No path specified. Setting it to " + options.path).warn);
   }
@@ -97,6 +100,12 @@ function _validateArguments(options, cb){
   // Do the same for dest
   if(!options.dest){
     options.dest = __dirname+"\\"+defaults.dest;
+    console.log(("Warning: No destination specified. Setting it to " + options.dest).warn);
+  }
+
+  // Set url
+  if(!options.url && options.mode === 'url'){
+    options.url = defaults.url;
     console.log(("Warning: No destination specified. Setting it to " + options.dest).warn);
   }
 
@@ -142,74 +151,96 @@ function _validatePaths(options, cb){
 
 function _processData(options, cb){
 
-  // Parse through each and find html file
-  fs.readdir(options.path, function(err, files){
+  if (options.mode === 'file'){
+    // Parse through each and find html file
+    fs.readdir(options.path, function(err, files){
 
-    var htmlfiles = files.filter(function(obj){
-      return (obj.match(".html")  !== null);
-    });
+      var htmlfiles = files.filter(function(obj){
+        return (obj.match(".html")  !== null);
+      });
 
-    // Process each HTML
-    htmlfiles.forEach(function(file){
+      // Process each HTML
+      htmlfiles.forEach(function(file){
 
-      var info = "Working on " + file;
-      var filePath = options.path + "\\"+ file;
-      console.log((info).data);
+        var info = "Working on " + file;
+        var filePath = options.path + "\\"+ file;
+        console.log((info).data);
 
-      // Read file content
-      fs.readFile(filePath,(err, html) => {
+        // Read file content
+        fs.readFile(filePath,(err, html) => {
 
-        if(err) throw err;
-
-        var tables = '',
-        tableIds = [];
-
-        var $ = cheerio.load(html);
-
-        //Check if we should filter down based on ID.
-        var filter = (typeof options.tableId !== 'undefined') ? "#" + options.tableId : 'table';
-
-        // Try to grab each table using cheerio to get an ID for the filename. Filter HTML down to wanted tables.
-        $(filter).each(function(i, element){
-          tableIds[i] = $(this).attr('id');
-          tables += $(this).parent().html();
+          if(err) throw err;
+          
+          _prepareHTML(html, options);
         });
-
-        var tablesAsJson = tabletojson.convert(tables);
-        var status = "Found "+ tablesAsJson.length +" tables";
-        console.log((status).data);
-
-        //File to write
-        tablesAsJson.forEach((table, index) => {
-          var filePath = options.dest +"/" // Reset
-
-          if(options.format == 'csv'){
-            json2csv({ data: table}, function(err, csv) {
-              if(err) throw err;
-
-              filePath += tableIds[index]+".csv";
-
-              fs.writeFile(filePath, csv, (err) => {
-                if(err) throw err;
-
-                var status = "Successfully saved " + filePath;
-                console.log((status).info);
-              });
-            });
-          }
-          else {
-            filePath += tableIds[index]+".json";
-
-            fs.writeFile(filePath, JSON.stringify(table), (err) => {
-              if (err) throw err;
-
-              var status = "Successfully saved " + filePath;
-              console.log((status).info);
-            });
-          }
-        });
-
       });
     });
+  }
+  else {
+    request(options.url, function (error, response, html) {
+      var info = "HTML received.";
+      console.log((info).data);
+
+      if (!error && response.statusCode == 200) {
+        _prepareHTML(html, options);
+      }
+    });
+  }
+}
+
+function _prepareHTML(html, options){
+
+  var tables = '',
+  tableIds = [];
+
+  var $ = cheerio.load(html);
+
+  //Check if we should filter down based on ID.
+  var filter = (typeof options.tableId !== 'undefined') ? "#" + options.tableId : 'table';
+
+  // Try to grab each table using cheerio to get an ID for the filename. Filter HTML down to wanted tables.
+  $(filter).each(function(i, element){
+    tableIds[i] = $(this).attr('id');
+    tables += $(this).parent().html();
+  });
+
+  var tablesAsJson = tabletojson.convert(tables);
+
+  var status = (tablesAsJson.length === 1)? "Found 1 table." : ("Found " +tablesAsJson.length+ " tables.");
+  console.log((status).data);
+
+  _writeData(tablesAsJson, tableIds, options);
+}
+
+function _writeData(tablesAsJson, tableIds, options){
+
+  //File to write
+  tablesAsJson.forEach((table, index, arr) => {
+    var filePath = options.dest +"/" // Reset
+
+    if(options.format == 'csv'){
+      json2csv({ data: table}, function(err, csv) {
+        if(err) throw err;
+
+        filePath += tableIds[index]+".csv";
+
+        fs.writeFile(filePath, csv, (err) => {
+          if(err) throw err;
+
+          var status = "Successfully saved " + filePath;
+          console.log((status).info);
+        });
+      });
+    }
+    else {
+      filePath += tableIds[index]+".json";
+
+      fs.writeFile(filePath, JSON.stringify(table), (err) => {
+        if (err) throw err;
+
+        var status = "Successfully saved " + filePath;
+        console.log((status).info);
+      });
+    }
   });
 }
