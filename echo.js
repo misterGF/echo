@@ -10,22 +10,22 @@ var defaults = {
   "format" : "csv"
 };
 
-var convert = (path, dest, format) => {
+var convert = (path, dest, format, tableId) => {
 
   //If path is not given kick in defaults
-  if(typeof path === 'undefined'){
+  if(!path){
     path = __dirname+"\\"+defaults.path;
     console.log("Warning: No path specified. Setting it to ", path);
   }
 
   // Do the same for dest
-  if(typeof dest === 'undefined'){
+  if(!dest){
     dest = __dirname+"\\"+defaults.dest;
     console.log("Warning: No destination specified. Setting it to ", dest);
   }
 
   // Set format type
-  format = (typeof format === 'undefined') ? defaults.format : format;
+  format = (!format) ? defaults.format : format;
 
   //Find or create path
   try {
@@ -79,10 +79,23 @@ var convert = (path, dest, format) => {
 
                 if(err) { reject(err); }
 
-                var tablesAsJson = tabletojson.convert(html);
+                var tables = '',
+                  tableIds = [];
+
+                $ = cheerio.load(html);
+
+                //Check if we should filter down based on ID.
+                var filter = (typeof tableId !== 'undefined') ? "#" + tableId : 'table';
+
+                // Try to grab each table using cheerio to get an ID for the filename. Filter HTML down to wanted tables.
+                $(filter).each(function(i, element){
+                  tableIds[i] = $(this).attr('id');
+                  tables += $(this).parent().html();
+                });
+
                 var info = {
-                  "table" : tablesAsJson,
-                  "html" : html
+                  "tableIds" : tableIds,
+                  "tables" : tables
                 };
 
                 resolve(info);
@@ -92,30 +105,27 @@ var convert = (path, dest, format) => {
             //Convert and file to file
             p.then(function(info){
 
-              // Try to grab each table using cheerio to get an ID for the filename
-              var tables = [];
-              $ = cheerio.load(info.html);
+              var tablesAsJson = tabletojson.convert(info.tables);
+              console.log("Found "+ tablesAsJson.length +" tables");
 
-              $('table').each(function(i, element){
-                tables[i] = $(this).attr('id');
-              });
-
-              console.log("Found "+ tables.length +" tables");
-
-              info.table.forEach((table, index) => {
+              //File to write
+              tablesAsJson.forEach((table, index) => {
 
                 if(format == 'csv'){
                   json2csv({ data: table}, function(err, csv) {
-
                       if(err) { throw new Error(err); }
 
-                      // Write file
-                      var filePath = dest +"/"+tables[index]+".csv";
-
+                      var filePath = dest +"/"+info.tableIds[index]+".csv";
                       fs.writeFile(filePath, csv, (err) => {
                         if (err) throw err;
-                        console.log(filePath + ' saved!');
+                        console.log(filePath + ' saved.');
                       });
+                  });
+                } else {
+                  filePath = dest +"/"+info.tableIds[index]+".json";
+                  fs.writeFile(filePath, JSON.stringify(table), (err) => {
+                    if (err) throw err;
+                    console.log(filePath + ' saved.');
                   });
                 }
               });
