@@ -1,4 +1,3 @@
-# WIP: Not ready
 # Echo - Convert HTML tables to JSON/CSVs
 
 Echo is able to read tables from a website or a html file and convert it to JSON or CSV.
