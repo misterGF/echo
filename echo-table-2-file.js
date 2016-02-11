@@ -93,13 +93,13 @@ function _validateArguments(options, cb){
 
   //If path is not given kick in defaults
   if(!options.path && options.mode === 'file'){
-    options.path = __dirname+"\\"+defaults.path;
+    options.path = process.cwd()+"\\"+defaults.path;
     console.log(("Warning: No path specified. Setting it to " + options.path).warn);
   }
 
   // Do the same for dest
   if(!options.dest){
-    options.dest = __dirname+"\\"+defaults.dest;
+    options.dest = process.cwd()+"\\"+defaults.dest;
     console.log(("Warning: No destination specified. Setting it to " + options.dest).warn);
   }
 
@@ -115,8 +115,7 @@ function _validateArguments(options, cb){
 }
 
 function _validatePaths(options, cb){
-  
-  fs.readdir(__dirname, function(err, files){
+  fs.readdir(process.cwd(), function(err, files){
     if(err) throw err;
 
     // Check if path exists if calling from convert
