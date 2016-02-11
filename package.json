@@ -6,7 +6,7 @@
   "name": "echo-table-2-file",
   "description": "Echo converts HTML tables into JSON/CSV objects. Use it to make html data easy to transport.",
   "version": "0.0.3",
-  "main": "./echo.js",
+  "main": "./echo-table-2-file.js",
   "license": "MIT",
   "keywords": [
     "echo",
