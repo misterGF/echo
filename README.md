@@ -19,7 +19,7 @@ We use **.convert** for local HTML files and **.convertUrl** for online retrieva
 
 ``` javascript
 // Site was saved locally in process folder. The follow code will read it and generate the json.
-var echo = require(' echo-table-2-file');
+var echo = require('echo-table-2-file');
 echo.convert('process', 'output', 'json');
 
 ```
