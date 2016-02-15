@@ -1,5 +1,5 @@
 // Site was saved locally in process folder. The follow code will read it and generate the json.
-var echo = require('./echo-table-2-file');
+var echo = require('./src/echo-table-2-file');
 
 //console.log("Get all tables as json"); // Convert requires html files being put into the path
 //echo.convert('process', 'dest', 'json');
