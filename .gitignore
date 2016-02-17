@@ -1,3 +1,4 @@
 node_modules
 dest
 npm-debug.log
+.DS_Store
