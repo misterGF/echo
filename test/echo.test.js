@@ -9,6 +9,7 @@ describe("ConvertURL Test", function(){
 
   beforeEach(function(done){
     echo.convertUrl('https://www.coolgithubprojects.com', 'dest','json');
+    echo.convertUrl('https://www.coolgithubprojects.com', 'dest','csv');
     setTimeout(function(){
       done();
     }, TIME_TO_GENERATE_JSON);
@@ -18,5 +19,8 @@ describe("ConvertURL Test", function(){
     expect('dest/days.json').to.be.a.file('Should be a json file').with.json;
     expect('dest/weeks.json').to.be.a.file('Should be a json file').with.json;
     expect('dest/months.json').to.be.a.file('Should be a json file').with.json;
+    expect('dest/days.csv').to.be.a.file('Should be a json file').with.csv;
+    expect('dest/weeks.csv').to.be.a.file('Should be a json file').with.csv;
+    expect('dest/months.csv').to.be.a.file('Should be a json file').with.csv;
   });
 });
