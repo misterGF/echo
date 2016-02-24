@@ -4,8 +4,9 @@ var expect = chai.expect;
 var echo = require('../src/echo-table-2-file');
 
 describe("ConvertURL Test", function(){
-  this.timeout(20000);
-  const TIME_TO_GENERATE_JSON = 3000;
+  
+  this.timeout(30000);
+  const TIME_TO_GENERATE_JSON = 6000;
 
   beforeEach(function(done){
     echo.convertUrl('https://www.coolgithubprojects.com', 'dest','json');
