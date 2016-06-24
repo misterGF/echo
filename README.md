@@ -8,8 +8,8 @@ Perfect for saving data from a website and loading it into excel, database, etc.
 ---
 
 ## Install
-``` javascript
-npm install echo-table-2-file
+```javascript
+npm i "echo-table-2-file"
 ```
 ---
 

@@ -5,7 +5,7 @@
   },
   "name": "echo-table-2-file",
   "description": "Echo converts HTML tables into JSON/CSV objects. Use it to make html data easy to transport.",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "main": "src/echo-table-2-file.js",
   "scripts": {
     "test": "mocha test/echo.test.js"
@@ -32,7 +32,7 @@
     "tabletojson": "^0.4.0"
   },
   "engines": {
-    "node": "*"
+    "node": ">=4.4.4"
   },
   "devDependencies": {
     "chai": "^1.9.1",
