@@ -1,5 +1,9 @@
 # Echo - Convert HTML tables to JSON/CSVs
-TravisCI: ![Travis CI Status](https://travis-ci.org/misterGF/echo.svg?branch=master)
+Nix Build: TravisCI: ![Travis CI Status](https://travis-ci.org/misterGF/echo.svg?branch=master)
+
+Windows Build: AppVeoyr: ![AppVeyour](https://ci.appveyor.com/api/projects/status/ggni7vsm023ux3am?svg=true)
+
+NPM: ![NPM Version](https://img.shields.io/npm/v/echo-table-2-file.svg)
 
 Echo is able to read tables from a website or a html file and convert it to JSON or CSV.
 Perfect for saving data from a website and loading it into excel, database, etc.
